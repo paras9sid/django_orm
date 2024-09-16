@@ -19,11 +19,11 @@ class Product(models.Model):
     
     pid = models.CharField(max_length=255)
     name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, blank=True)
     description = models.TextField(null=True)
     is_digital = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
-    updated_at = models.DateTimeField(auto_now=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=False)
     stock_status = models.CharField(
         max_length=3, 
@@ -48,9 +48,11 @@ class ProductLine(models.Model):
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     attribute_values = models.ManyToManyField('AttributeValue', related_name='attribute_values')
     
+    def __str__(self):
+        return f"{self.product.name}"
+    
 class ProductImage(models.Model):
-    name = models.CharField(max_length=100)
-    alternative_text = models.CharField(max_length=100)
+    alt_text = models.CharField(max_length=200)
     url = models.ImageField()
     order = models.IntegerField()
     product_line = models.ForeignKey(ProductLine, on_delete=models.CASCADE)
@@ -58,10 +60,10 @@ class ProductImage(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=100, 
                             unique=True, 
-                            verbose_name='First Name', 
+                            # verbose_name='First Name', 
                             help_text='Enter a category...'
     )
-    slug = models.SlugField(unique=True, null=True, blank=True)
+    slug = models.SlugField(unique=True, blank=True)
     is_active = models.BooleanField(default=False)
     parent=models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True) # self refrrecing key
     
@@ -77,28 +79,34 @@ class Category(models.Model):
     def __str__(self):
         return self.name
     
-    
-    
 class SeasonalEvent(models.Model): 
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     name = models.CharField(max_length=100, unique=True)
     
+    def __str__(self):
+        return self.name
+    
 class Attribute(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(null=True)
+    
+    def __str__(self):
+        return self.name
 
 class ProductType(models.Model):
     name = models.CharField(max_length=100)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
+    parent = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True)
     
     def __str__(self):
         return self.name
     
-    
 class AttributeValue(models.Model):
     attribute_value = models.CharField(max_length=100)
     attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f"{self.attribute.name} : {self.attribute_value}"
     
 class ProductLine_AttributeValue(models.Model):
     attribute_value = models.ForeignKey(AttributeValue, on_delete=models.CASCADE)
